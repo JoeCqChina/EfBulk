@@ -2,6 +2,11 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
+    <RepositoryUrl>https://github.com/JoeCqChina/EfBulk</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/JoeCqChina/EfBulk</PackageProjectUrl>
+    <Authors>Zhanc</Authors>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Description>Ef Core bulk insert, update, delete</Description>
   </PropertyGroup>
 
   <ItemGroup>
