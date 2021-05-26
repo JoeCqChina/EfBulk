@@ -8,3 +8,6 @@ I try to use a third-party class library:
 Finally, I tried to solve the problem myself.
 
 How I implement it: "Merge into a single SQL".
+
+
+NuGet: https://www.nuget.org/packages/Phy.EfBulk/
