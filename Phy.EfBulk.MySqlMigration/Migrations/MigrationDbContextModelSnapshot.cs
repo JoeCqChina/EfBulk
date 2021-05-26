@@ -3,7 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Phy.EfBulk.TestDb;
+using Phy.EfBulk.MySqlMigration;
 
 namespace Phy.EfBulk.MySqlMigration.Migrations
 {

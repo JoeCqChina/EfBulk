@@ -54,13 +54,14 @@ namespace Phy.EfBulk.MySqlTest
             }
         }
 
-        public MyDbContext Get() {
+        public MyDbContext Get()
+        {
             var contextOptions = new DbContextOptionsBuilder<MyDbContext>()
-            .UseMySql("Server=localhost;Port=3306;Database=BulkTestDb;Uid=root;Pwd=yourpwd;Pooling=true;Max Pool Size=99;Min Pool Size=10;SslMode=Preferred;CharSet=utf8mb4;Allow User Variables=True;", new MySqlServerVersion("8.0.24"))
+            .UseMySql("Server=192.168.1.254;Port=3306;Database=bulktestedb;Uid=cvuser;Pwd=123456;Pooling=true;Max Pool Size=99;Min Pool Size=10;SslMode=Preferred;CharSet=utf8mb4;Allow User Variables=True;", new MySqlServerVersion("8.0.24"))
             .Options;
-            var db= new MyDbContext(contextOptions);
+            var db = new MyDbContext(contextOptions);
             db.Database.EnsureDeleted();
-            db.Database.EnsureCreated();
+            //db.Database.EnsureCreated();
             return db;
         }
     }

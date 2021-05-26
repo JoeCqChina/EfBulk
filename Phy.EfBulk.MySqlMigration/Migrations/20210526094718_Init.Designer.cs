@@ -4,12 +4,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Phy.EfBulk.TestDb;
+using Phy.EfBulk.MySqlMigration;
 
 namespace Phy.EfBulk.MySqlMigration.Migrations
 {
     [DbContext(typeof(MigrationDbContext))]
-    [Migration("20210526060101_Init")]
+    [Migration("20210526094718_Init")]
     partial class Init
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
