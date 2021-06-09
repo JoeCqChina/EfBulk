@@ -103,7 +103,9 @@ namespace Phy.EfBulk
             var objType = typeof(T);
             var entityType = db.Model.FindEntityType(objType);
             var result = 0;
-            var querySql = query.ToQueryString();
+            var parseSql = ParseSql(query.ToQueryString());
+            var queryParas = parseSql.Item1;
+            var querySql = parseSql.Item2;
             var storeObject = StoreObjectIdentifier.Table(entityType.GetTableName(), entityType.GetSchema());
             var properties = entityType.GetProperties()
                 .ToList();
@@ -113,6 +115,10 @@ namespace Phy.EfBulk
             var sqlBuilder = new StringBuilder();
             var tableName = entityType.GetTableName();
             var joinTableName = "JoinTable1";
+            if (!string.IsNullOrWhiteSpace(queryParas))
+            {
+                sqlBuilder.AppendLine($"{queryParas} ");
+            }
             sqlBuilder.AppendLine($"DELETE {tableName} FROM {tableName} INNER JOIN( {querySql} ) AS {joinTableName} ON ( ");
             for (var i = 0; i < primaryKeyProperties.Count; i++)
             {
@@ -161,7 +167,9 @@ namespace Phy.EfBulk
 
             if (updater.Body is MemberInitExpression memberInitExpression)
             {
-                var querySql = query.ToQueryString();
+                var parseSql = ParseSql(query.ToQueryString());
+                var queryParas = parseSql.Item1;
+                var querySql = parseSql.Item2;
                 var paraList = new List<object>();
 
                 var tableName = entityType.GetTableName();
@@ -173,7 +181,10 @@ namespace Phy.EfBulk
                 var updateTableAlias = "ut1";
                 var joinTableAlias = "jt1";
                 var sqlBuilder = new StringBuilder();
-
+                if (!string.IsNullOrWhiteSpace(queryParas))
+                {
+                    sqlBuilder.AppendLine($"{queryParas} ");
+                }
                 sqlBuilder.AppendLine($"UPDATE {tableName} AS {updateTableAlias} INNER JOIN ({querySql}) AS {joinTableAlias} ON (");
                 for (var i = 0; i < primaryKeyProperties.Count; i++)
                 {
@@ -276,14 +287,14 @@ namespace Phy.EfBulk
                         //string regex = @"SELECT\s*(?<ColumnValue>.+)?(\s*AS\s*(?<ColumnAlias>\w+))?\s*FROM\s*(?<TableName>\w+\.\w+|\w+)\s*(AS\s*(?<TableAlias>\w+))?";
                         //string regex = @"SELECT\s*(?<ColumnValue>\S+)(\s*AS\s*(?<ColumnAlias>\S+))?\s*FROM\s*(?<TableName>\S+)?\s*(AS\s*(?<TableAlias>\S+))?";
                         string regex = @"SELECT\s*(?<Column>(\S|\s)+)\s*FROM\s*(?<TableName>(\w+)|(`\w+`)|(\[\w+\]))?\s*(AS\s*(?<TableAlias>(\w+)|(`\w+`)|(\[\w+\])))?";
-                        Match match = Regex.Match(selectSql, regex);
+                        Match match = Regex.Match(selectSql, regex, RegexOptions.IgnoreCase);
                         if (!match.Success)
                         {
                             throw new ArgumentException("The MemberAssignment expression could not be processed.", nameof(updater));
                         }
                         var column = match.Groups["Column"].Value;
                         var columnReg = @"\s*(((?<ColumnValue>[\s\S]+)\s*AS\s*(?<ColumnAlias>[`\[\]\w]+))|(?<ColumnValue>[\s\S]+))\s*$";
-                        var colMatch = Regex.Match(column, columnReg);
+                        var colMatch = Regex.Match(column, columnReg, RegexOptions.IgnoreCase);
 
                         string alias = match.Groups["TableAlias"].Value;
                         string value = colMatch.Groups["ColumnValue"].Value;
@@ -313,6 +324,17 @@ namespace Phy.EfBulk
             }
 
             return result;
+        }
+
+        private static Tuple<string, string> ParseSql(string sql)
+        {
+
+            var match = Regex.Match(sql, @"^(?<SqlParas>((\s*SET\s+[@\w]+\s*=\s*\S+;\s+)+)?)(?<SqlBody>(\s*SELECT\s+(\S|\s)+))$", RegexOptions.IgnoreCase);
+            if (match.Success)
+            {
+                return new Tuple<string, string>(match.Groups["SqlParas"].Value, match.Groups["SqlBody"].Value);
+            }
+            return new Tuple<string, string>(string.Empty, sql);
         }
 
         private static int ExecuteSqlRaw(DbContext db, StringBuilder sqlBuilder, bool disableTran, [NotNullAttribute] params object[] parameters)

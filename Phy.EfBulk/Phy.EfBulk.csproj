@@ -8,9 +8,8 @@
     <Description>Ef Core(5.0) bulk insert, update, delete</Description>
     <PackageProjectUrl>https://github.com/JoeCqChina/EfBulk</PackageProjectUrl>
     <RepositoryUrl>https://github.com/JoeCqChina/EfBulk</RepositoryUrl>
-    <Version>1.0.2</Version>
-    <PackageReleaseNotes>add custom disable transaction.
-</PackageReleaseNotes>
+    <Version>1.0.3</Version>
+    <PackageReleaseNotes></PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
