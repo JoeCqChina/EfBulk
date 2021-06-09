@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore.Metadata;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
@@ -19,7 +20,7 @@ namespace Phy.EfBulk
         /// <param name="db">Database Context</param>
         /// <param name="entities">Data to be inserted</param>
         /// <returns>The number of rows affected.</returns>
-        public static int BulkInsert<T>(this DbContext db, IEnumerable<T> entities) where T : class
+        public static int BulkInsert<T>(this DbContext db, IEnumerable<T> entities, bool disableTran = false) where T : class
         {
             var objType = typeof(T);
             var entityType = db.Model.FindEntityType(objType);
@@ -78,25 +79,26 @@ namespace Phy.EfBulk
                     //}
                     //sqlBuilder.AppendLine($" ({string.Join(",", valueNames.Select(x => "@" + x))})");
 
-                    using (var tran = db.Database.BeginTransaction())
-                    {
-                        result = db.Database.ExecuteSqlRaw(sqlBuilder.ToString(), paras);
-                        tran.Commit();
-                        //db.Database.ExecuteSqlRaw
-                    }
+                    result = ExecuteSqlRaw(db, sqlBuilder, disableTran, paras);
+                    //using (var tran = db.Database.BeginTransaction())
+                    //{
+                    //    result = db.Database.ExecuteSqlRaw(sqlBuilder.ToString(), paras);
+                    //    tran.Commit();
+                    //    //db.Database.ExecuteSqlRaw
+                    //}
                 }
 
             }
             return result;
         }
 
-        public static int BulkDelete<T>(this DbContext db, Expression<Func<T, bool>> predicate) where T : class
+        public static int BulkDelete<T>(this DbContext db, Expression<Func<T, bool>> predicate, bool disableTran = false) where T : class
         {
             var query = db.Set<T>().Where(predicate);
-            return BulkDelete(db, query);
+            return BulkDelete(db, query, disableTran);
         }
 
-        public static int BulkDelete<T>(this DbContext db, IQueryable<T> query) where T : class
+        public static int BulkDelete<T>(this DbContext db, IQueryable<T> query, bool disableTran = false) where T : class
         {
             var objType = typeof(T);
             var entityType = db.Model.FindEntityType(objType);
@@ -128,28 +130,30 @@ namespace Phy.EfBulk
                 //}
             }
             sqlBuilder.Append(")");
-            using (var tran = db.Database.BeginTransaction())
-            {
-                result = db.Database.ExecuteSqlRaw(sqlBuilder.ToString());
-                tran.Commit();
-                //db.Database.ExecuteSqlRaw
-            }
+
+            result = ExecuteSqlRaw(db, sqlBuilder, disableTran);
+            //using (var tran = db.Database.BeginTransaction())
+            //{
+            //    result = db.Database.ExecuteSqlRaw(sqlBuilder.ToString());
+            //    tran.Commit();
+            //    //db.Database.ExecuteSqlRaw
+            //}
             return result;
         }
 
         // The method has been canceled. It is very dangerous and will update all the data. 
-        //public static int BulkUpdate<T>(this DbContext db, Expression<Func<T, T>> updater) where T : class
+        //public static int BulkUpdate<T>(this DbContext db, Expression<Func<T, T>> updater, bool disableTran = false) where T : class
         //{
         //    return BulkUpdate(db, db.Set<T>(), updater);
         //}
 
-        public static int BulkUpdate<T>(this DbContext db, Expression<Func<T, bool>> predicate, Expression<Func<T, T>> updater) where T : class
+        public static int BulkUpdate<T>(this DbContext db, Expression<Func<T, bool>> predicate, Expression<Func<T, T>> updater, bool disableTran = false) where T : class
         {
             var query = db.Set<T>().Where(predicate);
-            return BulkUpdate(db, query, updater);
+            return BulkUpdate(db, query, updater, disableTran);
         }
 
-        public static int BulkUpdate<T>(this DbContext db, IQueryable<T> query, Expression<Func<T, T>> updater) where T : class
+        public static int BulkUpdate<T>(this DbContext db, IQueryable<T> query, Expression<Func<T, T>> updater, bool disableTran = false) where T : class
         {
             var objType = typeof(T);
             var entityType = db.Model.FindEntityType(objType);
@@ -300,13 +304,50 @@ namespace Phy.EfBulk
                     }
                 }
                 //var sqlRaw = sqlBuilder.ToString();
+                result = ExecuteSqlRaw(db, sqlBuilder, disableTran, paraList);
+                //using (var tran = db.Database.BeginTransaction())
+                //{
+                //    result = db.Database.ExecuteSqlRaw(sqlBuilder.ToString(), paraList);
+                //    tran.Commit();
+                //}
+            }
+
+            return result;
+        }
+
+        private static int ExecuteSqlRaw(DbContext db, StringBuilder sqlBuilder, bool disableTran, [NotNullAttribute] params object[] parameters)
+        {
+            int result;
+            if (disableTran)
+            {
+                result = db.Database.ExecuteSqlRaw(sqlBuilder.ToString(), parameters);
+            }
+            else
+            {
                 using (var tran = db.Database.BeginTransaction())
                 {
-                    result = db.Database.ExecuteSqlRaw(sqlBuilder.ToString(), paraList);
+                    result = db.Database.ExecuteSqlRaw(sqlBuilder.ToString(), parameters);
                     tran.Commit();
                 }
             }
+            return result;
+        }
 
+        private static int ExecuteSqlRaw(DbContext db, StringBuilder sqlBuilder, bool disableTran, [NotNullAttribute] IEnumerable<object> parameters)
+        {
+            int result;
+            if (disableTran)
+            {
+                result = db.Database.ExecuteSqlRaw(sqlBuilder.ToString(), parameters);
+            }
+            else
+            {
+                using (var tran = db.Database.BeginTransaction())
+                {
+                    result = db.Database.ExecuteSqlRaw(sqlBuilder.ToString(), parameters);
+                    tran.Commit();
+                }
+            }
             return result;
         }
 
