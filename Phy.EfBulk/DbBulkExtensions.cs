@@ -70,7 +70,21 @@ namespace Phy.EfBulk
 
                         foreach (var p in properties)
                         {
-                            paras.Add(objType.GetProperty(p.Name).GetValue(item));
+                            //paras.Add(objType.GetProperty(p.Name).GetValue(item));
+                            var typeMapping = p.GetTypeMapping();
+                            var originalValue = objType.GetProperty(p.Name).GetValue(item);
+                            if (typeMapping?.Converter?.ConvertToProviderExpression != null && originalValue != null)
+                            {
+                                paras.Add(typeMapping.Converter.ConvertToProviderExpression.Compile().DynamicInvoke(originalValue));
+                            }
+                            else if (typeMapping?.Converter?.ConvertToProvider != null)
+                            {
+                                paras.Add(typeMapping.Converter.ConvertToProvider(originalValue));
+                            }
+                            else
+                            {
+                                paras.Add(originalValue);
+                            }
                         }
                     }
                     //foreach (var item in entities)
