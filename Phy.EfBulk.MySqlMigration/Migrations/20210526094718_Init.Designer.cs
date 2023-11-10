@@ -17,7 +17,7 @@ namespace Phy.EfBulk.MySqlMigration.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("Relational:MaxIdentifierLength", 64)
-                .HasAnnotation("ProductVersion", "5.0.5");
+                .HasAnnotation("ProductVersion", "6.0.24");
 
             modelBuilder.Entity("Phy.EfBulk.TestDb.Entities.Category", b =>
                 {
